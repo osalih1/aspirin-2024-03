@@ -11,9 +11,10 @@ fn swap(val1: &mut i32, val2: &mut i32) {
 }
 
 /// Given a mutable string slice, strip all vowels and digits
-fn strip_vowels_and_digits(s: &mut String) {
+fn strip_vowels_and_digits(s: &mut String) -> &str {
     strip_vowels(s);
     *s = strip_digits(s.clone());
+    s
 }
 
 // DO NOT MODIFY BELOW THIS LINE

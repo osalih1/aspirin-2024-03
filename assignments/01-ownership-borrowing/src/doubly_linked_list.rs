@@ -19,7 +19,7 @@ impl LinkedStack {
         todo!();
     }
 
-    fn push(&mut self, val: i32) {
+    fn push(&mut self, _val: i32) {
         todo!()
     }
 
