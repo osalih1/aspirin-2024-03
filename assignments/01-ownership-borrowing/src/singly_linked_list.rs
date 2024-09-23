@@ -1,26 +1,45 @@
-struct Node {}
+struct Node {
+    val: i32,
+    next: Link,
+}
 
 type Link = Option<Box<Node>>;
-
-pub struct LinkedStack {}
+// A stack is first in last out. So we need to add elements to the head of the list.
+pub struct LinkedStack {
+    head: Link,
+}
 
 impl LinkedStack {
     fn new() -> Self {
-        todo!()
+        LinkedStack { head: None }
     }
 
     fn push(&mut self, val: i32) {
-        todo!();
+        let temp: Link = self.head.take();
+        self.head = Some(Box::new(Node {
+            val: val,
+            next: temp,
+        }))
     }
 
     fn pop(&mut self) -> Option<i32> {
-        todo!();
+        // Take the current head, leaving `self.head` as None
+        if let Some(node) = self.head.take() {
+            // Move self.head to point to the next node
+            self.head = node.next;
+            // Return the value of the node we just popped
+            Some(node.val)
+        } else {
+            // If the stack was empty, return None
+            None
+        }
     }
 }
 
 impl Drop for LinkedStack {
     fn drop(&mut self) {
-        todo!();
+        // Continually pop elements from the stack until it's empty
+        while let Some(_) = self.pop() {}
     }
 }
 
