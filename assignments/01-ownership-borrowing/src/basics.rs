@@ -24,7 +24,9 @@ fn slice_sum(slice: &[i32]) -> i32 {
 /// Given a string slice, look for a substring, and return a slice of the first
 /// occurrence of the substring (return None if the substring is not found)
 fn find_in_string<'a>(haystack: &'a str, needle: &str) -> Option<&'a str> {
-    haystack.find(needle).map(|index| &haystack[index..index + needle.len()])
+    haystack
+        .find(needle)
+        .map(|index| &haystack[index..index + needle.len()])
 }
 
 // DO NOT MODIFY BELOW THIS LINE
