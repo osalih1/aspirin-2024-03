@@ -1,23 +1,121 @@
-use std::collections::HashMap;
+fn longest_equal_sequence_prescriptive<T: PartialEq>(sequence: &[T]) -> i32 {
+    if sequence.is_empty() {
+        return 0;
+    }
 
-fn longest_equal_sequence_prescriptive(sequence) -> i32 {
-    todo!()
+    let mut current_length: i32 = 1; // Start with 1 since we always have the first element
+    let mut longest_length: i32 = 1;
+
+    for i in 1..sequence.len() {
+        if sequence[i - 1] == sequence[i] {
+            current_length += 1;
+        } else {
+            if current_length > longest_length {
+                longest_length = current_length;
+            }
+            current_length = 1; // Reset current sequence length
+        }
+    }
+
+    // Final check for the longest sequence after the loop
+    if current_length > longest_length {
+        longest_length = current_length;
+    }
+
+    longest_length
 }
 
-fn longest_equal_sequence_functional(sequence) -> i32 {
-    todo!()
+fn longest_equal_sequence_functional<T: PartialEq>(sequence: &[T]) -> i32 {
+    if sequence.is_empty() {
+        return 0;
+    }
+
+    sequence
+        .windows(2)
+        .fold((1, 1), |(longest, current_len), window| {
+            if window[0] == window[1] {
+                (longest.max(current_len + 1), current_len + 1)
+            } else {
+                (longest.max(current_len), 1)
+            }
+        })
+        .0
 }
 
-fn is_valid_paranthesis(paranthesis: &str) -> bool {
-    todo!()
+fn is_valid_parentheses(parentheses: &str) -> bool {
+    if parentheses.is_empty() {
+        return true;
+    }
+    let mut stack: Vec<char> = Vec::new();
+
+    for item in parentheses.chars() {
+        match item {
+            '(' | '{' | '[' => {
+                // Push the opening brackets onto the stack
+                stack.push(item);
+            }
+            ')' => {
+                // If it's a closing parenthesis, check if it matches the last opening parenthesis
+                if stack.pop() != Some('(') {
+                    return false;
+                }
+            }
+            '}' => {
+                if stack.pop() != Some('{') {
+                    return false;
+                }
+            }
+            ']' => {
+                if stack.pop() != Some('[') {
+                    return false;
+                }
+            }
+            _ => {
+                // For any other characters, we do nothing or handle differently
+                // This ensures that all characters are covered
+            }
+        }
+    }
+    stack.is_empty() // if empty, it is a valid parenthesis string
 }
 
-fn longest_common_substring<(first_str: &str, second_str: &str) -> &str {
-    todo!()
+fn longest_common_substring<'a>(first_str: &'a str, second_str: &'a str) -> &'a str {
+    let mut longest_substr = "";
+    // Iterate over all possible starting points in `first_str`
+    for i in 0..first_str.len() {
+        // Iterate over all possible substrings starting from index `i`
+        for j in i + 1..=first_str.len() {
+            let current_substr = &first_str[i..j];
+            // Check if `current_substr` exists in `second_str`
+            if second_str.contains(current_substr) {
+                // Update `longest_substr` if this one is longer
+                if current_substr.len() > longest_substr.len() {
+                    longest_substr = current_substr;
+                }
+            }
+        }
+    }
+    longest_substr
 }
 
-fn longest_common_substring_multiple(strings: &[&str]) -> &str {
-    todo!()
+fn longest_common_substring_multiple<'a>(strings: &'a [&'a str]) -> &'a str {
+    if strings.is_empty() {
+        return ""; // If no strings are given, return an empty string.
+    }
+
+    // Start with the first string as the "current longest common substring"
+    let mut common_substr = strings[0];
+
+    // Iterate over the remaining strings and progressively find the longest common substring
+    for i in 1..strings.len() {
+        common_substr = longest_common_substring(common_substr, strings[i]);
+
+        // If at any point the common substring becomes empty, return early
+        if common_substr.is_empty() {
+            return "";
+        }
+    }
+    common_substr
 }
 
 #[cfg(test)]
@@ -90,21 +188,21 @@ mod tests {
     }
 
     #[test]
-    fn test_is_valid_paranthesis() {
-        assert_eq!(is_valid_paranthesis(&String::from("{}")), true);
-        assert_eq!(is_valid_paranthesis(&String::from("()")), true);
-        assert_eq!(is_valid_paranthesis(&String::from("()[]{}")), true);
-        assert_eq!(is_valid_paranthesis(&String::from("({[]})")), true);
-        assert_eq!(is_valid_paranthesis(&String::from("([]){}{}([]){}")), true);
-        assert_eq!(is_valid_paranthesis(&String::from("()(")), false);
-        assert_eq!(is_valid_paranthesis(&String::from("(()")), false);
-        assert_eq!(is_valid_paranthesis(&String::from("([)]{[})")), false);
+    fn test_is_valid_parentheses() {
+        assert_eq!(is_valid_parentheses(&String::from("{}")), true);
+        assert_eq!(is_valid_parentheses(&String::from("()")), true);
+        assert_eq!(is_valid_parentheses(&String::from("()[]{}")), true);
+        assert_eq!(is_valid_parentheses(&String::from("({[]})")), true);
+        assert_eq!(is_valid_parentheses(&String::from("([]){}{}([]){}")), true);
+        assert_eq!(is_valid_parentheses(&String::from("()(")), false);
+        assert_eq!(is_valid_parentheses(&String::from("(()")), false);
+        assert_eq!(is_valid_parentheses(&String::from("([)]{[})")), false);
         assert_eq!(
-            is_valid_paranthesis(&String::from("({[()]}){[([)]}")),
+            is_valid_parentheses(&String::from("({[()]}){[([)]}")),
             false
         );
         assert_eq!(
-            is_valid_paranthesis(&String::from("()[]{}(([])){[()]}(")),
+            is_valid_parentheses(&String::from("()[]{}(([])){[()]}(")),
             false
         );
     }
