@@ -1,7 +1,8 @@
 use std::{fmt::Display, str::FromStr};
 
 use crate::error::AspirinEatsError;
-
+// use crate::food::{OrderRequest, Order};
+// use serde_json;
 /// Simple wrapper for an HTTP Request
 #[derive(Debug)]
 pub struct HttpRequest {
@@ -20,14 +21,43 @@ impl FromStr for HttpRequest {
 
     // Parse a string into an HTTP Request
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let mut lines = s.lines();
+        let request_line = lines.next().ok_or("Invalid request")?;
+        let mut parts = request_line.split_whitespace();
+        let method = parts.next().map(|s| s.to_string());
+        let path = parts.next().map(|s| s.to_string());
+
+        // Skip headers for simplicity
+        let mut headers_done = false;
+        let mut body: Option<String> = None;
+        for line in lines {
+            if line.is_empty() {
+                headers_done = true;
+                continue;
+            }
+            if headers_done {
+                if let Some(ref mut b) = body {
+                    b.push_str(line);
+                    b.push('\n');
+                } else {
+                    body = Some(line.to_string() + "\n");
+                }
+            }
+        }
+        if body.as_ref().map_or(true, |b| b.is_empty()) {
+            body = None;
+        } else {
+            body = body.map(|b| b.trim_end().to_string());
+        }
+
+        Ok(HttpRequest { method, path, body })
     }
 }
 
 pub struct HttpResponse {
-    status_code: u16,
-    status_text: String,
-    body: String,
+    pub status_code: u16,
+    pub status_text: String,
+    pub body: String,
 }
 
 impl HttpResponse {
@@ -41,16 +71,31 @@ impl HttpResponse {
 }
 
 impl Display for HttpResponse {
-    /// Convert an HttpResponse struct to a valid HTTP Response
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(
+            f,
+            "HTTP/1.1 {} {}\r\nContent-Length: {}\r\nContent-Type: application/json\r\n\r\n{}",
+            self.status_code,
+            self.status_text,
+            self.body.len(),
+            self.body
+        )
     }
 }
 
 impl From<AspirinEatsError> for HttpResponse {
     /// Given an error type, convert it to an appropriate HTTP Response
-    fn from(value: AspirinEatsError) -> Self {
-        todo!()
+    fn from(error: AspirinEatsError) -> Self {
+        match error {
+            AspirinEatsError::ParseError(_) | AspirinEatsError::InvalidRequest => {
+                HttpResponse::new(400, "Bad Request", "Invalid Request")
+            }
+            AspirinEatsError::NotFound => HttpResponse::new(404, "Not Found", "Resource not found"),
+            AspirinEatsError::MethodNotAllowed => {
+                HttpResponse::new(405, "Method Not Allowed", "Method not allowed")
+            }
+            _ => HttpResponse::new(500, "Internal Server Error", "Internal Server Error"),
+        }
     }
 }
 
@@ -72,7 +117,7 @@ mod tests {
         let response = HttpResponse::new(200, "OK", "Welcome to Aspirin Eats!");
         assert_eq!(
             response.to_string(),
-            "HTTP/1.1 200 OK\r\n\r\nWelcome to Aspirin Eats!"
+            "HTTP/1.1 200 OK\r\nContent-Length: 24\r\nContent-Type: application/json\r\n\r\nWelcome to Aspirin Eats!"
         );
     }
 
