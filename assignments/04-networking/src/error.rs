@@ -1,28 +1,23 @@
-use thiserror;
+use thiserror::Error;
 
-#[derive(thiserror::Error, Debug)]
+#[derive(Error, Debug)]
 pub enum AspirinEatsError {
     /// Error when trying to parse a JSON string
-    #[error("Failed to parse request")]
-    ParseError(#[from] serde_json::Error),
-
-    /// Error when fetching or otherwise interacting with the database
-    #[error("Failed to interact with database")]
-    Database(#[from] rusqlite::Error),
-
-    /// Error when reading/writing from Streams
-    #[error("Failed to read/write from stream")]
-    Io(#[from] std::io::Error),
-
-    /// Error interpreting or parsing HTTP Request
-    #[error("Invalid Request")]
+    #[error("Parse error: {0}")]
+    ParseError(String),
+    /// Error when an invalid request is received
+    #[error("Invalid request")]
     InvalidRequest,
-
-    /// Error when receiving request for resource that does not exist
-    #[error("Resource not found")]
+    /// Error when a resource is not found
+    #[error("Not found")]
     NotFound,
-
-    /// Error when request is for an HTTP method not supported on that path
+    /// Error when an unsupported HTTP method is used
     #[error("Method not allowed")]
     MethodNotAllowed,
+    /// IO Error
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    /// Database Error (from rusqlite)
+    #[error("Database error: {0}")]
+    DatabaseError(#[from] rusqlite::Error),
 }
